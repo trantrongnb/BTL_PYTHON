@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Nhận Diện Cảm Xúc Khuôn Mặt</title>
+    <style>
+      body {
+        text-align: center;
+        background: #f0f0f0;
+        color: #111;
+        font-family: sans-serif;
+      }
+
+      h1 {
+        margin-top: 20px;
+        font-size: 28px;
+        color: #333;
+      }
+
+      /* Webcam */
+      #videoStream {
+        border: 5px solid #007bff;
+        border-radius: 15px;
+        margin-top: 20px;
+        width: 640px;
+        height: 480px;
+        box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+        object-fit: cover;
+        background-color: #eee;
+      }
+
+      /* Upload */
+      #uploadResult {
+        border: 5px solid #28a745;
+        border-radius: 15px;
+        margin-top: 20px;
+        width: 480px;
+        max-height: 480px;
+        box-shadow: 0 0 15px rgba(40, 167, 69, 0.5);
+        object-fit: contain;
+        background-color: #eee;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      button {
+        margin: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+        border: none;
+        color: white;
+        background-color: #007bff;
+        transition: 0.3s;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      button.stop {
+        background-color: #dc3545;
+      }
+
+      button.stop:hover {
+        background-color: #a71d2a;
+      }
+
+      form {
+        margin-top: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Nhận Diện Cảm Xúc Khuôn Mặt</h1>
+
+    <!-- Webcam -->
+    <img id="videoStream" />
+
+    <div>
+      <button id="startBtn">Start</button>
+      <button id="stopBtn" class="stop">Stop</button>
+    </div>
+
+    <!-- Upload -->
+    <h2>Tải ảnh lên để nhận diện cảm xúc</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" name="file" accept="image/*" required />
+      <button type="submit">Dự đoán</button>
+    </form>
+
+    <img id="uploadResult" src="" alt="Ảnh dự đoán" />
+    <div
+      id="probTable"
+      style="
+        width: 300px;
+        margin: 20px auto;
+        padding: 10px;
+        border: 2px solid #444;
+        border-radius: 10px;
+        background: white;
+      "
+    ></div>
+
+    <script>
+      const video = document.getElementById("videoStream");
+      const startBtn = document.getElementById("startBtn");
+      const stopBtn = document.getElementById("stopBtn");
+      const uploadForm = document.getElementById("uploadForm");
+      const uploadResult = document.getElementById("uploadResult");
+
+      startBtn.onclick = () => {
+        video.src = "/video_feed";
+      };
+
+      stopBtn.onclick = () => {
+        video.src = "/static/anh_cho.jpeg";
+      };
+
+      // Upload ảnh dự đoán
+      uploadForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(uploadForm);
+
+        const response = await fetch("/predict_image", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        // Hiển thị ảnh
+        uploadResult.src = "data:image/jpeg;base64," + data.image_base64;
+
+        // Hiển thị bảng kết quả cho mỗi người
+        let html = "<h2>Kết quả cho từng khuôn mặt</h2>";
+
+        data.faces.forEach((face) => {
+          html += `
+      <div style="
+        margin: 15px auto; 
+        padding: 15px; 
+        border: 2px solid #333; 
+        border-radius: 10px;
+        width: 350px; 
+        background: white;">
+        
+        <h3>Người #${face.id}</h3>
+        <p><b>Cảm xúc:</b> <span style="color:red; font-size:20px">${
+          face.label
+        }</span></p>
+        <p><b>Tin cậy:</b> ${face.confidence}%</p>
+        <hr>
+
+        <h4>Bảng xác suất</h4>
+        ${Object.entries(face.probabilities)
+          .map(
+            ([emotion, prob]) => `
+          <div style="display:flex; justify-content:space-between;">
+            <span>${emotion}</span>
+            <span>${prob}%</span>
+          </div>
+        `
+          )
+          .join("")}
+      </div>
+    `;
+        });
+
+        document.getElementById("probTable").innerHTML = html;
+      });
+    </script>
+  </body>
+</html>
