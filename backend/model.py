@@ -40,7 +40,6 @@ class ResidualBlock(nn.Module):
         out = F.relu(out)
         return out
 
-# Nâng cấp model
 class My_Advanced_Model(nn.Module):
     def __init__(self, num_class):
         super().__init__()

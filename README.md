@@ -17,7 +17,7 @@ Dự án này sử dụng mô hình học máy để nhận diện và phân lo�
 Sử dụng lệnh `git clone` để tải toàn bộ mã nguồn của dự án về máy của bạn.
 
 ```bash
-git clone git@github.com:trantrongnb/PYTHON.git
+git clone git@github.com:trantrongnb/BTL_PYTHON.git
 ```
 
 ### 2. Cài đặt các thư viện
