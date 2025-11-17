@@ -127,25 +127,26 @@ async def predict_image(file: UploadFile = File(...)):
 
         with torch.no_grad():
             output = emotion_model(roi)
-            probs = torch.nn.functional.softmax(output, dim=1)[0].cpu().numpy()
+            probs = torch.nn.functional.softmax(output, dim=1)[0].cpu().numpy().tolist()  # <-- chuyển sang list
 
-        pred = np.argmax(probs)
-        label = class_labels[pred]
-        conf = probs[pred] * 100
+        pred = int(np.argmax(probs))
+        label = str(class_labels[pred])
+        conf = float(probs[pred] * 100)
 
+        # Vẽ bounding box và nhãn
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
         cv2.putText(frame, f"{label} {conf:.1f}%", (x1, y1 - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
 
         faces_output.append({
-            "id": face_id,
+            "id": int(face_id),
             "label": label,
             "confidence": round(conf, 2),
-            "probabilities": {class_labels[i]: float(f"{probs[i]*100:.2f}")
-                              for i in range(len(class_labels))}
+            "probabilities": {class_labels[i]: float(probs[i]*100) for i in range(len(class_labels))}
         })
         face_id += 1
 
+    # Encode ảnh kết quả sang base64
     _, buffer = cv2.imencode(".jpg", frame)
     img_base64 = base64.b64encode(buffer).decode("utf-8")
 
