@@ -95,6 +95,7 @@ async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+
 @app.get("/video_feed")
 def video_feed():
     return StreamingResponse(
@@ -130,7 +131,7 @@ async def predict_image(file: UploadFile = File(...)):
             probs = torch.nn.functional.softmax(output, dim=1)[0].cpu().numpy()
 
         pred = np.argmax(probs)
-        label = class_labels[pred]
+        label = class_labels[pred] 
         conf = probs[pred] * 100
 
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
