@@ -2,109 +2,630 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Nhận Diện Cảm Xúc Khuôn Mặt</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Facial Emotion Recognition</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
     <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       body {
         text-align: center;
-        background: #f0f0f0;
-        color: #111;
-        font-family: sans-serif;
+        background: #030712;
+        color: #ffffff;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        min-height: 100vh;
+        padding: 0;
+        overflow-x: hidden;
       }
 
-      h1 {
-        margin-top: 20px;
-        font-size: 28px;
-        color: #333;
+      .container {
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        background: #030712;
+        border-radius: 0;
+        padding: 0;
+        box-shadow: none;
+        border: none;
+        display: flex;
+        flex-direction: column;
       }
 
-      /* Webcam */
-      #videoStream {
-        border: 5px solid #007bff;
-        border-radius: 15px;
-        margin-top: 20px;
-        width: 640px;
-        height: 480px;
-        box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
-        object-fit: cover;
-        background-color: #eee;
+      /* Header */
+      header {
+        background: rgba(15, 23, 42, 0.8);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+        padding: 20px 40px;
+        backdrop-filter: blur(10px);
       }
 
-      /* Upload */
-      #uploadResult {
-        border: 5px solid #28a745;
-        border-radius: 15px;
-        margin-top: 20px;
-        width: 480px;
-        max-height: 480px;
-        box-shadow: 0 0 15px rgba(40, 167, 69, 0.5);
-        object-fit: contain;
-        background-color: #eee;
+      header h1 {
+        margin: 0;
+        font-size: 32px;
+        color: #ffffff;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      /* Main Content Area */
+      .main-wrapper {
+        display: flex;
+        flex: 1;
+        gap: 0;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 280px;
+        background: rgba(15, 23, 42, 0.6);
+        border-right: 1px solid rgba(148, 163, 184, 0.3);
+        padding: 32px 0;
+      }
+
+      .sidebar-title {
+        color: #00bcff;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0 24px;
+        margin-bottom: 16px;
+      }
+
+      .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .sidebar-menu li {
+        margin: 0;
+      }
+
+      .sidebar-menu button {
+        width: 100%;
+        text-align: left;
+        padding: 14px 24px;
+        background: transparent;
+        border: none;
+        border-left: 3px solid transparent;
+        color: #e2e8f0;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: none;
+      }
+
+      .sidebar-menu button:hover {
+        background: rgba(0, 188, 255, 0.1);
+        color: #00bcff;
+        border-left-color: #00bcff;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .sidebar-menu button.active {
+        background: rgba(0, 188, 255, 0.15);
+        color: #00bcff;
+        border-left-color: #00bcff;
+        box-shadow: none;
+      }
+
+      .sidebar-menu button::before {
+        display: none;
+      }
+
+      .sidebar-menu button i {
+        width: 20px;
+        text-align: center;
+      }
+
+      /* Content Area */
+      .content-area {
+        flex: 1;
+        padding: 40px;
+        overflow-y: auto;
+      }
+
+      .content-section {
+        display: none;
+      }
+
+      .content-section.active {
         display: block;
-        margin-left: auto;
-        margin-right: auto;
+      }
+
+      /* Footer */
+      footer {
+        background: #030712;
+        border-top: 1px solid rgba(148, 163, 184, 0.3);
+        padding: 24px 40px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+      }
+
+      footer p {
+        margin: 0;
+        color: #f1f5f9;
+        font-size: 14px;
+      }
+
+      footer a {
+        color: #00bcff;
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+
+      footer a:hover {
+        color: #00d4ff;
+        text-shadow: 0 0 10px rgba(0, 188, 255, 0.5);
+      }
+
+      footer a:hover {
+        color: #00d4ff;
+        text-shadow: 0 0 10px rgba(0, 188, 255, 0.5);
+      }
+
+      h2 {
+        margin: 0 0 24px;
+        font-size: 24px;
+        color: #ffffff;
+        font-weight: 700;
+        text-align: left;
+      }
+
+      /* Webcam Section */
+      .webcam-section {
+        background: rgba(15, 23, 42, 0.3);
+        padding: 32px;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      /* Upload Section */
+      .upload-section {
+        background: rgba(15, 23, 42, 0.3);
+        padding: 32px;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      #videoStream {
+        border: 2px solid rgba(148, 163, 184, 0.4);
+        border-radius: 12px;
+        margin: 24px auto;
+        width: 100%;
+        max-width: 800px;
+        min-height: 400px;
+        height: auto;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        object-fit: cover;
+        background-color: rgba(3, 7, 18, 0.8);
+        transition: all 0.3s ease;
+        display: none;
+      }
+
+      #videoStream.show {
+        display: block;
+      }
+
+      #videoStream:hover {
+        border-color: #00bcff;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 40px rgba(0, 188, 255, 0.3);
+      }
+
+      /* Buttons */
+      .button-group {
+        margin: 20px 0;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
       }
 
       button {
-        margin: 10px;
-        padding: 10px 20px;
-        font-size: 16px;
+        padding: 12px 32px;
+        font-size: 14px;
+        font-weight: 600;
         cursor: pointer;
-        border-radius: 5px;
-        border: none;
-        color: white;
-        background-color: #007bff;
-        transition: 0.3s;
+        border-radius: 8px;
+        border: 1px solid #00bcff;
+        color: #ffffff;
+        background: linear-gradient(135deg, #00bcff 0%, #0099cc 100%);
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        text-transform: none;
+        letter-spacing: normal;
+        position: relative;
+        overflow: hidden;
+        min-width: 120px;
+      }
+
+      button::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+
+      button:hover::before {
+        width: 300px;
+        height: 300px;
       }
 
       button:hover {
-        background-color: #0056b3;
+        background: linear-gradient(135deg, #00d4ff 0%, #00bcff 100%);
+        box-shadow: 0 0 20px rgba(0, 188, 255, 0.6),
+          0 0 40px rgba(0, 188, 255, 0.4), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border-color: #00d4ff;
+        transform: translateY(-2px);
+        color: #ffffff;
+      }
+
+      button:active {
+        transform: scale(0.98) translateY(0);
       }
 
       button.stop {
-        background-color: #dc3545;
+        background: linear-gradient(135deg, #cb5598 0%, #b44686 100%);
+        border-color: #cb5598;
+        color: #ffffff;
       }
 
       button.stop:hover {
-        background-color: #a71d2a;
+        background: linear-gradient(135deg, #d866a8 0%, #cb5598 100%);
+        box-shadow: 0 0 20px rgba(203, 85, 152, 0.6),
+          0 0 40px rgba(203, 85, 152, 0.4), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border-color: #d866a8;
+        color: #ffffff;
       }
 
       form {
-        margin-top: 30px;
+        margin: 25px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      input[type="file"] {
+        padding: 10px 16px;
+        font-size: 14px;
+        border: 2px dashed rgba(148, 163, 184, 0.4);
+        border-radius: 8px;
+        background: rgba(3, 7, 18, 0.8);
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      input[type="file"]:hover {
+        border-color: #00bcff;
+        background: rgba(15, 23, 42, 0.5);
+        box-shadow: 0 0 20px rgba(0, 188, 255, 0.2);
+      }
+
+      /* Upload Result */
+      #uploadResult {
+        border: 2px solid rgba(148, 163, 184, 0.4);
+        border-radius: 12px;
+        margin: 24px auto 0;
+        width: 100%;
+        max-width: 800px;
+        height: auto;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        object-fit: contain;
+        background-color: rgba(3, 7, 18, 0.8);
+        display: none;
+        transition: all 0.3s ease;
+      }
+
+      #uploadResult.show {
+        display: block;
+      }
+
+      #uploadResult:hover {
+        border-color: #00bcff;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 40px rgba(0, 188, 255, 0.3);
+      }
+
+      /* Results Table */
+      #probTable {
+        max-width: 800px;
+        margin: 30px auto;
+        padding: 0;
+      }
+
+      .face-result {
+        margin: 24px auto;
+        padding: 24px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.4);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        max-width: 100%;
+      }
+
+      .face-result:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 30px rgba(0, 188, 255, 0.2);
+        border-color: #00bcff;
+      }
+
+      .face-result h3 {
+        color: #00bcff;
+        font-size: 20px;
+        margin-bottom: 16px;
+        font-weight: 700;
+      }
+
+      .face-result p {
+        font-size: 16px;
+        margin: 12px 0;
+        line-height: 1.5;
+        color: #ffffff;
+      }
+
+      .emotion-label {
+        color: #ffffff;
+        font-size: 22px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .confidence {
+        color: #ffffff;
+        font-weight: 700;
+      }
+
+      .face-result hr {
+        border: none;
+        border-top: 1px solid rgba(148, 163, 184, 0.2);
+        margin: 16px 0;
+      }
+
+      .face-result h4 {
+        color: #00bcff;
+        font-size: 18px;
+        margin: 16px 0;
+        font-weight: 600;
+      }
+
+      .prob-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 12px;
+        margin: 4px 0;
+        background: rgba(3, 7, 18, 0.6);
+        border-radius: 6px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        transition: all 0.3s ease;
+      }
+
+      .prob-row:hover {
+        background: rgba(15, 23, 42, 0.6);
+        border-color: rgba(148, 163, 184, 0.4);
+        box-shadow: 0 0 15px rgba(0, 188, 255, 0.15);
+      }
+
+      .prob-row span:first-child {
+        font-weight: 500;
+        color: #f1f5f9;
+      }
+
+      .prob-row span:last-child {
+        color: #ffffff;
+        font-weight: 700;
+      }
+
+      #probTable {
+        margin-top: 48px;
+      }
+
+      @media (max-width: 768px) {
+        header {
+          padding: 16px 20px;
+        }
+
+        header h1 {
+          font-size: 24px;
+        }
+
+        .main-wrapper {
+          flex-direction: column;
+        }
+
+        .sidebar {
+          width: 100%;
+          border-right: none;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+          padding: 16px 0;
+        }
+
+        .sidebar-menu {
+          display: flex;
+          overflow-x: auto;
+        }
+
+        .sidebar-menu li {
+          flex-shrink: 0;
+        }
+
+        .sidebar-menu button {
+          border-left: none;
+          border-bottom: 3px solid transparent;
+          padding: 12px 20px;
+        }
+
+        .sidebar-menu button:hover,
+        .sidebar-menu button.active {
+          border-left-color: transparent;
+          border-bottom-color: #00bcff;
+        }
+
+        .content-area {
+          padding: 24px 16px;
+        }
+
+        h2 {
+          font-size: 20px;
+        }
+
+        button {
+          padding: 8px 16px;
+          font-size: 14px;
+        }
+
+        .face-result {
+          padding: 20px;
+        }
+
+        .webcam-section,
+        .upload-section {
+          padding: 24px;
+        }
+
+        footer {
+          padding: 20px 16px;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>Nhận Diện Cảm Xúc Khuôn Mặt</h1>
+    <div class="container">
+      <!-- Header -->
+      <header>
+        <h1><i class="fas fa-brain"></i> Facial Emotion Recognition</h1>
+      </header>
 
-    <!-- Webcam -->
-    <img id="videoStream" />
+      <div class="main-wrapper">
+        <!-- Sidebar Menu -->
+        <aside class="sidebar">
+          <div class="sidebar-title">Features</div>
+          <ul class="sidebar-menu">
+            <li>
+              <button id="webcamTab" class="active">
+                <i class="fas fa-video"></i>
+                <span>Live Camera</span>
+              </button>
+            </li>
+            <li>
+              <button id="uploadTab">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>Upload Image</span>
+              </button>
+            </li>
+          </ul>
+        </aside>
 
-    <div>
-      <button id="startBtn">Start</button>
-      <button id="stopBtn" class="stop">Stop</button>
+        <!-- Content Area -->
+        <main class="content-area">
+          <!-- Webcam Section -->
+          <div id="webcamSection" class="content-section active">
+            <div class="webcam-section">
+              <h2><i class="fas fa-video"></i> Live Camera</h2>
+              <img id="videoStream" alt="Video stream" />
+
+              <div class="button-group">
+                <button id="startBtn"><i class="fas fa-play"></i> Start</button>
+                <button id="stopBtn" class="stop">
+                  <i class="fas fa-stop"></i> Stop
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upload Section -->
+          <div id="uploadSection" class="content-section">
+            <div class="upload-section">
+              <h2>
+                <i class="fas fa-cloud-upload-alt"></i> Upload Image for
+                Recognition
+              </h2>
+              <form id="uploadForm" enctype="multipart/form-data">
+                <input type="file" name="file" accept="image/*" required />
+                <button type="submit">
+                  <i class="fas fa-search"></i> Predict
+                </button>
+              </form>
+
+              <img id="uploadResult" src="" alt="Prediction result" />
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div id="probTable"></div>
+        </main>
+      </div>
+
+      <!-- Footer -->
+      <footer>
+        <p>
+          &copy; 2025 Facial Emotion Recognition. All rights reserved by
+          <a href="#">A* Team</a>
+        </p>
+      </footer>
     </div>
 
-    <!-- Upload -->
-    <h2>Tải ảnh lên để nhận diện cảm xúc</h2>
-    <form id="uploadForm" enctype="multipart/form-data">
-      <input type="file" name="file" accept="image/*" required />
-      <button type="submit">Dự đoán</button>
-    </form>
-
-    <img id="uploadResult" src="" alt="Ảnh dự đoán" />
-    <div
-      id="probTable"
-      style="
-        width: 300px;
-        margin: 20px auto;
-        padding: 10px;
-        border: 2px solid #444;
-        border-radius: 10px;
-        background: white;
-      "
-    ></div>
-
     <script>
+      // Tab switching
+      const webcamTab = document.getElementById("webcamTab");
+      const uploadTab = document.getElementById("uploadTab");
+      const webcamSection = document.getElementById("webcamSection");
+      const uploadSection = document.getElementById("uploadSection");
+      const probTable = document.getElementById("probTable");
+
+      webcamTab.addEventListener("click", () => {
+        webcamTab.classList.add("active");
+        uploadTab.classList.remove("active");
+        webcamSection.classList.add("active");
+        uploadSection.classList.remove("active");
+        probTable.innerHTML = "";
+      });
+
+      uploadTab.addEventListener("click", () => {
+        uploadTab.classList.add("active");
+        webcamTab.classList.remove("active");
+        uploadSection.classList.add("active");
+        webcamSection.classList.remove("active");
+        probTable.innerHTML = "";
+      });
+
+      // Existing code
       const video = document.getElementById("videoStream");
       const startBtn = document.getElementById("startBtn");
       const stopBtn = document.getElementById("stopBtn");
@@ -113,10 +634,12 @@
 
       startBtn.onclick = () => {
         video.src = "/video_feed";
+        video.classList.add("show");
       };
 
       stopBtn.onclick = () => {
-        video.src = "/static/anh_cho.jpeg";
+        video.src = "";
+        video.classList.remove("show");
       };
 
       // Upload ảnh dự đoán
@@ -134,32 +657,29 @@
 
         // Hiển thị ảnh
         uploadResult.src = "data:image/jpeg;base64," + data.image_base64;
+        uploadResult.classList.add("show");
 
         // Hiển thị bảng kết quả cho mỗi người
-        let html = "<h2>Kết quả cho từng khuôn mặt</h2>";
+        let html =
+          '<h2 style="text-align: center; margin-top: 40px;"><i class="fas fa-chart-bar"></i> Results for Each Face</h2>';
 
         data.faces.forEach((face) => {
           html += `
-      <div style="
-        margin: 15px auto; 
-        padding: 15px; 
-        border: 2px solid #333; 
-        border-radius: 10px;
-        width: 350px; 
-        background: white;">
-        
-        <h3>Người #${face.id}</h3>
-        <p><b>Cảm xúc:</b> <span style="color:red; font-size:20px">${
+      <div class="face-result">
+        <h3><i class="fas fa-user"></i> Person #${face.id}</h3>
+        <p><i class="fas fa-smile"></i> <b>Emotion:</b> <span class="emotion-label">${
           face.label
         }</span></p>
-        <p><b>Tin cậy:</b> ${face.confidence}%</p>
+        <p><i class="fas fa-percentage"></i> <b>Confidence:</b> <span class="confidence">${
+          face.confidence
+        }%</span></p>
         <hr>
 
-        <h4>Bảng xác suất</h4>
+        <h4><i class="fas fa-chart-line"></i> Probability Table</h4>
         ${Object.entries(face.probabilities)
           .map(
             ([emotion, prob]) => `
-          <div style="display:flex; justify-content:space-between;">
+          <div class="prob-row">
             <span>${emotion}</span>
             <span>${prob}%</span>
           </div>
